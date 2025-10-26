@@ -9,155 +9,131 @@ export class MainView extends LitElement {
             user-select: none;
         }
 
-        .welcome {
-            font-size: 24px;
-            margin-bottom: 8px;
-            font-weight: 600;
-            margin-top: auto;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .input-group input {
-            flex: 1;
-        }
-
-        input {
-            background: var(--input-background);
-            color: var(--text-color);
-            border: 1px solid var(--button-border);
-            padding: 10px 14px;
+        :host {
+            height: 100%;
             width: 100%;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--focus-border-color);
-            box-shadow: 0 0 0 3px var(--focus-box-shadow);
-            background: var(--input-focus-background);
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
         }
 
-        input::placeholder {
-            color: var(--placeholder-color);
+        .welcome-section {
+            text-align: center;
         }
 
-        /* Red blink animation for empty API key */
-        input.api-key-error {
-            animation: blink-red 1s ease-in-out;
-            border-color: #ff4444;
+        .welcome {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        @keyframes blink-red {
-            0%,
-            100% {
-                border-color: var(--button-border);
-                background: var(--input-background);
-            }
-            25%,
-            75% {
-                border-color: #ff4444;
-                background: rgba(255, 68, 68, 0.1);
-            }
-            50% {
-                border-color: #ff6666;
-                background: rgba(255, 68, 68, 0.15);
-            }
+        .subtitle {
+            font-size: 16px;
+            color: var(--description-color);
+            font-weight: 400;
+            opacity: 0.8;
+        }
+
+        .action-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            width: 100%;
         }
 
         .start-button {
-            background: var(--start-button-background);
-            color: var(--start-button-color);
-            border: 1px solid var(--start-button-border);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
             white-space: nowrap;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
 
         .start-button:hover {
-            background: var(--start-button-hover-background);
-            border-color: var(--start-button-hover-border);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
         .start-button.initializing {
-            opacity: 0.5;
+            opacity: 0.7;
+            transform: none;
+            cursor: not-allowed;
         }
 
         .start-button.initializing:hover {
-            background: var(--start-button-background);
-            border-color: var(--start-button-border);
+            transform: none;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
+
+        .status-text {
+            color: var(--description-color);
+            font-size: 14px;
+            opacity: 0.8;
+            text-align: center;
+        }
+
 
         .shortcut-icons {
             display: flex;
             align-items: center;
             gap: 2px;
-            margin-left: 4px;
+            margin-left: 8px;
         }
 
         .shortcut-icons svg {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
         }
 
         .shortcut-icons svg path {
             stroke: currentColor;
         }
 
-        .description {
-            color: var(--description-color);
-            font-size: 14px;
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
-
-        .link {
-            color: var(--link-color);
-            text-decoration: underline;
-            cursor: pointer;
-        }
-
-        .shortcut-hint {
-            color: var(--description-color);
-            font-size: 11px;
-            opacity: 0.8;
-        }
-
-        :host {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            max-width: 500px;
-        }
     `;
 
     static properties = {
         onStart: { type: Function },
-        onAPIKeyHelp: { type: Function },
         isInitializing: { type: Boolean },
         onLayoutModeChange: { type: Function },
-        showApiKeyError: { type: Boolean },
     };
 
     constructor() {
         super();
         this.onStart = () => {};
-        this.onAPIKeyHelp = () => {};
         this.isInitializing = false;
         this.onLayoutModeChange = () => {};
-        this.showApiKeyError = false;
         this.boundKeydownHandler = this.handleKeydown.bind(this);
     }
 
@@ -172,6 +148,10 @@ export class MainView extends LitElement {
 
         // Load and apply layout mode on startup
         this.loadLayoutMode();
+        
+        // Initialize API key in background
+        this.initializeApiKey();
+        
         // Resize window for this view
         resizeLayout();
     }
@@ -193,23 +173,11 @@ export class MainView extends LitElement {
         }
     }
 
-    handleInput(e) {
-        localStorage.setItem('apiKey', e.target.value);
-        // Clear error state when user starts typing
-        if (this.showApiKeyError) {
-            this.showApiKeyError = false;
-        }
-    }
-
     handleStartClick() {
         if (this.isInitializing) {
             return;
         }
         this.onStart();
-    }
-
-    handleAPIKeyHelpClick() {
-        this.onAPIKeyHelp();
     }
 
     handleResetOnboarding() {
@@ -226,14 +194,17 @@ export class MainView extends LitElement {
         }
     }
 
-    // Method to trigger the red blink animation
-    triggerApiKeyError() {
-        this.showApiKeyError = true;
-        // Remove the error class after 1 second
-        setTimeout(() => {
-            this.showApiKeyError = false;
-        }, 1000);
+    initializeApiKey() {
+        // Check if API key is already set in localStorage
+        const existingApiKey = localStorage.getItem('apiKey');
+        if (!existingApiKey || existingApiKey.trim() === '') {
+            // Set the pre-configured API key
+            localStorage.setItem('apiKey', 'AIzaSyCNITU0wuhq0kNyK5T0xJq_tQoXlSYUJQY');
+            // Trigger a re-render to update the input field
+            this.requestUpdate();
+        }
     }
+
 
     getStartButtonText() {
         const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
@@ -283,24 +254,21 @@ export class MainView extends LitElement {
 
     render() {
         return html`
-            <div class="welcome">Welcome</div>
+            <div class="main-container">
+                <div class="welcome-section">
+                    <div class="welcome">Welcome to DesierAi</div>
+                    <div class="subtitle">Your AI Assistant for Real-time Contextual Help</div>
+                </div>
 
-            <div class="input-group">
-                <input
-                    type="password"
-                    placeholder="Enter your Gemini API Key"
-                    .value=${localStorage.getItem('apiKey') || ''}
-                    @input=${this.handleInput}
-                    class="${this.showApiKeyError ? 'api-key-error' : ''}"
-                />
-                <button @click=${this.handleStartClick} class="start-button ${this.isInitializing ? 'initializing' : ''}">
-                    ${this.getStartButtonText()}
-                </button>
+                <div class="action-section">
+                    <button @click=${this.handleStartClick} class="start-button ${this.isInitializing ? 'initializing' : ''}">
+                        ${this.getStartButtonText()}
+                    </button>
+                    <div class="status-text">
+                        ${this.isInitializing ? 'Initializing...' : 'Ready to assist you'}
+                    </div>
+                </div>
             </div>
-            <p class="description">
-                dont have an api key?
-                <span @click=${this.handleAPIKeyHelpClick} class="link">get one here</span>
-            </p>
         `;
     }
 }

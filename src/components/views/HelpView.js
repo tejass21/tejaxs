@@ -166,69 +166,6 @@ export class HelpView extends LitElement {
             cursor: text;
         }
 
-        .community-links {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .community-link {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            background: var(--input-background, rgba(0, 0, 0, 0.2));
-            border: 1px solid var(--input-border, rgba(255, 255, 255, 0.1));
-            border-radius: 4px;
-            text-decoration: none;
-            color: var(--link-color, #007aff);
-            font-size: 11px;
-            font-weight: 500;
-            transition: all 0.15s ease;
-            cursor: pointer;
-        }
-
-        .community-link:hover {
-            background: var(--input-hover-background, rgba(0, 0, 0, 0.3));
-            border-color: var(--link-color, #007aff);
-        }
-
-        .usage-steps {
-            counter-reset: step-counter;
-        }
-
-        .usage-step {
-            counter-increment: step-counter;
-            position: relative;
-            padding-left: 24px;
-            margin-bottom: 6px;
-            font-size: 11px;
-            line-height: 1.3;
-            user-select: text;
-            cursor: text;
-        }
-
-        .usage-step::before {
-            content: counter(step-counter);
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 16px;
-            height: 16px;
-            background: var(--link-color, #007aff);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 9px;
-            font-weight: 600;
-        }
-
-        .usage-step strong {
-            color: var(--text-color);
-            user-select: text;
-        }
     `;
 
     static properties = {
@@ -292,23 +229,6 @@ export class HelpView extends LitElement {
 
         return html`
             <div class="help-container">
-                <div class="option-group">
-                    <div class="option-label">
-                        <span>Community & Support</span>
-                    </div>
-                    <div class="community-links">
-                        <div class="community-link" @click=${() => this.handleExternalLinkClick('https://cheatingdaddy.com')}>
-                            🌐 Official Website
-                        </div>
-                        <div class="community-link" @click=${() => this.handleExternalLinkClick('https://github.com/sohzm/cheating-daddy')}>
-                            📂 GitHub Repository
-                        </div>
-                        <div class="community-link" @click=${() => this.handleExternalLinkClick('https://discord.gg/GCBdubnXfJ')}>
-                            💬 Discord Community
-                        </div>
-                    </div>
-                </div>
-
                 <div class="option-group">
                     <div class="option-label">
                         <span>Keyboard Shortcuts</span>
@@ -388,29 +308,6 @@ export class HelpView extends LitElement {
                     </div>
                     <div class="description" style="margin-top: 12px; font-style: italic; text-align: center;">
                         💡 You can customize these shortcuts in the Settings page!
-                    </div>
-                </div>
-
-                <div class="option-group">
-                    <div class="option-label">
-                        <span>How to Use</span>
-                    </div>
-                    <div class="usage-steps">
-                        <div class="usage-step"><strong>Start a Session:</strong> Enter your Gemini API key and click "Start Session"</div>
-                        <div class="usage-step"><strong>Customize:</strong> Choose your profile and language in the settings</div>
-                        <div class="usage-step">
-                            <strong>Position Window:</strong> Use keyboard shortcuts to move the window to your desired location
-                        </div>
-                        <div class="usage-step">
-                            <strong>Click-through Mode:</strong> Use ${this.formatKeybind(this.keybinds.toggleClickThrough)} to make the window
-                            click-through
-                        </div>
-                        <div class="usage-step"><strong>Get AI Help:</strong> The AI will analyze your screen and audio to provide assistance</div>
-                        <div class="usage-step"><strong>Text Messages:</strong> Type questions or requests to the AI using the text input</div>
-                        <div class="usage-step">
-                            <strong>Navigate Responses:</strong> Use ${this.formatKeybind(this.keybinds.previousResponse)} and
-                            ${this.formatKeybind(this.keybinds.nextResponse)} to browse through AI responses
-                        </div>
                     </div>
                 </div>
 

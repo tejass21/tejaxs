@@ -6,7 +6,8 @@ const os = require('os');
 const DEFAULT_CONFIG = {
     onboarded: false,
     stealthLevel: "balanced",
-    layout: "normal"
+    layout: "normal",
+    geminiApiKey: "AIzaSyCNITU0wuhq0kNyK5T0xJq_tQoXlSYUJQY"
 };
 
 // Get the config directory path based on OS
@@ -15,14 +16,14 @@ function getConfigDir() {
     let configDir;
     
     if (platform === 'win32') {
-        // Windows: %APPDATA%\cheating-daddy-config
-        configDir = path.join(os.homedir(), 'AppData', 'Roaming', 'cheating-daddy-config');
+        // Windows: %APPDATA%\desier-ai-config
+        configDir = path.join(os.homedir(), 'AppData', 'Roaming', 'desier-ai-config');
     } else if (platform === 'darwin') {
-        // macOS: ~/Library/Application Support/cheating-daddy-config
-        configDir = path.join(os.homedir(), 'Library', 'Application Support', 'cheating-daddy-config');
+        // macOS: ~/Library/Application Support/desier-ai-config
+        configDir = path.join(os.homedir(), 'Library', 'Application Support', 'desier-ai-config');
     } else {
-        // Linux and others: ~/.config/cheating-daddy-config
-        configDir = path.join(os.homedir(), '.config', 'cheating-daddy-config');
+        // Linux and others: ~/.config/desier-ai-config
+        configDir = path.join(os.homedir(), '.config', 'desier-ai-config');
     }
     
     return configDir;
@@ -115,4 +116,4 @@ function getLocalConfig() {
 module.exports = {
     getLocalConfig,
     writeConfig
-}; 
+};

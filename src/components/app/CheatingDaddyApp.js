@@ -8,7 +8,7 @@ import { AssistantView } from '../views/AssistantView.js';
 import { OnboardingView } from '../views/OnboardingView.js';
 import { AdvancedView } from '../views/AdvancedView.js';
 
-export class CheatingDaddyApp extends LitElement {
+export class DesierAiApp extends LitElement {
     static styles = css`
         * {
             box-sizing: border-box;
@@ -265,14 +265,17 @@ export class CheatingDaddyApp extends LitElement {
 
     // Main view event handlers
     async handleStart() {
-        // check if api key is empty do nothing
-        const apiKey = localStorage.getItem('apiKey')?.trim();
+        // check if api key is empty, try to get from config or use fallback
+        let apiKey = localStorage.getItem('apiKey')?.trim();
+        
+        // Fallback to pre-configured API key if localStorage is empty
         if (!apiKey || apiKey === '') {
-            // Trigger the red blink animation on the API key input
-            const mainView = this.shadowRoot.querySelector('main-view');
-            if (mainView && mainView.triggerApiKeyError) {
-                mainView.triggerApiKeyError();
-            }
+            apiKey = 'AIzaSyCNITU0wuhq0kNyK5T0xJq_tQoXlSYUJQY';
+            localStorage.setItem('apiKey', apiKey);
+        }
+        
+        if (!apiKey || apiKey === '') {
+            console.error('API key is not available');
             return;
         }
 
@@ -288,7 +291,7 @@ export class CheatingDaddyApp extends LitElement {
     async handleAPIKeyHelp() {
         if (window.require) {
             const { ipcRenderer } = window.require('electron');
-            await ipcRenderer.invoke('open-external', 'https://cheatingdaddy.com/help/api-key');
+            await ipcRenderer.invoke('open-external', 'https://desierai.com/help/api-key');
         }
     }
 
@@ -518,4 +521,4 @@ export class CheatingDaddyApp extends LitElement {
     }
 }
 
-customElements.define('cheating-daddy-app', CheatingDaddyApp);
+customElements.define('desier-ai-app', DesierAiApp);
