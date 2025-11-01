@@ -30,6 +30,8 @@ let hiddenVideo = null;
 let offscreenCanvas = null;
 let offscreenContext = null;
 let currentImageQuality = 'medium'; // Store current image quality for manual screenshots
+let isPaused = false; // Track pause state
+let savedScreenshotInterval = null; // Store interval value when paused
 
 const isLinux = process.platform === 'linux';
 const isMacOS = process.platform === 'darwin';
@@ -177,6 +179,10 @@ ipcRenderer.on('update-status', (event, status) => {
 async function startCapture(screenshotIntervalSeconds = 5, imageQuality = 'medium') {
     // Store the image quality for manual screenshots
     currentImageQuality = imageQuality;
+    
+    // Reset pause state
+    isPaused = false;
+    savedScreenshotInterval = screenshotIntervalSeconds;
 
     // Reset token tracker when starting new capture session
     tokenTracker.reset();
@@ -344,7 +350,11 @@ async function startCapture(screenshotIntervalSeconds = 5, imageQuality = 'mediu
             // Don't start automatic capture in manual mode
         } else {
             const intervalMilliseconds = parseInt(screenshotIntervalSeconds) * 1000;
-            screenshotInterval = setInterval(() => captureScreenshot(imageQuality), intervalMilliseconds);
+            screenshotInterval = setInterval(() => {
+                if (!isPaused) {
+                    captureScreenshot(imageQuality);
+                }
+            }, intervalMilliseconds);
 
             // Capture first screenshot immediately
             setTimeout(() => captureScreenshot(imageQuality), 100);
@@ -365,6 +375,8 @@ function setupLinuxMicProcessing(micStream) {
     const samplesPerChunk = SAMPLE_RATE * AUDIO_CHUNK_DURATION;
 
     micProcessor.onaudioprocess = async e => {
+        if (isPaused) return;
+        
         const inputData = e.inputBuffer.getChannelData(0);
         audioBuffer.push(...inputData);
 
@@ -398,6 +410,8 @@ function setupLinuxSystemAudioProcessing() {
     const samplesPerChunk = SAMPLE_RATE * AUDIO_CHUNK_DURATION;
 
     audioProcessor.onaudioprocess = async e => {
+        if (isPaused) return;
+        
         const inputData = e.inputBuffer.getChannelData(0);
         audioBuffer.push(...inputData);
 
@@ -428,6 +442,8 @@ function setupWindowsLoopbackProcessing() {
     const samplesPerChunk = SAMPLE_RATE * AUDIO_CHUNK_DURATION;
 
     audioProcessor.onaudioprocess = async e => {
+        if (isPaused) return;
+        
         const inputData = e.inputBuffer.getChannelData(0);
         audioBuffer.push(...inputData);
 
@@ -551,6 +567,13 @@ async function captureScreenshot(imageQuality = 'medium', isManual = false) {
 
 async function captureManualScreenshot(imageQuality = null) {
     console.log('Manual screenshot triggered');
+    
+    // Notify that manual screenshot was triggered (for analyzing state)
+    if (window.require) {
+        const { ipcRenderer } = window.require('electron');
+        ipcRenderer.send('manual-screenshot-triggered');
+    }
+    
     const quality = imageQuality || currentImageQuality;
     await captureScreenshot(quality, true); // Pass true for isManual
     await new Promise(resolve => setTimeout(resolve, 2000)); // TODO shitty hack
@@ -561,10 +584,95 @@ async function captureManualScreenshot(imageQuality = null) {
         `);
 }
 
+// Pause capture
+function pauseCapture() {
+    if (isPaused) return;
+    
+    isPaused = true;
+    
+    // Pause screenshot interval
+    if (screenshotInterval) {
+        clearInterval(screenshotInterval);
+        screenshotInterval = null;
+    }
+    
+    // Pause media stream tracks (this stops video/audio capture)
+    if (mediaStream) {
+        mediaStream.getTracks().forEach(track => {
+            track.enabled = false;
+        });
+    }
+    
+    // Stop macOS audio capture if running
+    if (isMacOS) {
+        ipcRenderer.invoke('stop-macos-audio').catch(err => {
+            console.error('Error stopping macOS audio:', err);
+        });
+    }
+    
+    // Note: Audio processors remain connected but will skip processing
+    // when isPaused is true in their callbacks
+    
+    console.log('✅ Capture paused - All AI processing stopped');
+}
+
+// Resume capture
+async function resumeCapture() {
+    if (!isPaused) return;
+    
+    isPaused = false;
+    
+    // Resume screenshot interval if we had one
+    if (savedScreenshotInterval && savedScreenshotInterval !== 'manual') {
+        const intervalSeconds = savedScreenshotInterval;
+        screenshotInterval = setInterval(() => {
+            if (!isPaused) {
+                captureScreenshot(currentImageQuality);
+            }
+        }, intervalSeconds * 1000);
+    }
+    
+    // Re-enable media stream tracks
+    if (mediaStream) {
+        mediaStream.getTracks().forEach(track => {
+            track.enabled = true;
+        });
+    }
+    
+    // Restart macOS audio capture if needed
+    if (isMacOS) {
+        try {
+            const audioResult = await ipcRenderer.invoke('start-macos-audio');
+            if (!audioResult.success) {
+                console.warn('Failed to restart macOS audio:', audioResult.error);
+            }
+        } catch (err) {
+            console.error('Error restarting macOS audio:', err);
+        }
+    }
+    
+    // Note: Audio processing will resume automatically since isPaused is now false
+    // The audio processors will start processing again in their callbacks
+    
+    console.log('✅ Capture resumed - All AI processing restarted');
+}
+
+// Get pause state
+function getPauseState() {
+    return isPaused;
+}
+
 // Expose functions to global scope for external access
 window.captureManualScreenshot = captureManualScreenshot;
+window.pauseCapture = pauseCapture;
+window.resumeCapture = resumeCapture;
+window.getPauseState = getPauseState;
 
 function stopCapture() {
+    // Reset pause state
+    isPaused = false;
+    savedScreenshotInterval = null;
+    
     if (screenshotInterval) {
         clearInterval(screenshotInterval);
         screenshotInterval = null;
@@ -768,6 +876,11 @@ const cheddar = {
     stopCapture,
     sendTextMessage,
     handleShortcut,
+
+    // Pause/Resume functionality
+    pauseCapture,
+    resumeCapture,
+    getPauseState,
 
     // Conversation history functions
     getAllConversationSessions,

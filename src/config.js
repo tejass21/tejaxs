@@ -7,7 +7,7 @@ const DEFAULT_CONFIG = {
     onboarded: false,
     stealthLevel: "balanced",
     layout: "normal",
-    geminiApiKey: "AIzaSyCNITU0wuhq0kNyK5T0xJq_tQoXlSYUJQY"
+    geminiApiKey: "AIzaSyAD9VNXxfs7bmQjbqx8NOhv9oBRj6MI9lc"
 };
 
 // Get the config directory path based on OS

@@ -289,12 +289,31 @@ export class AssistantView extends LitElement {
         .save-button svg {
             stroke: currentColor !important;
         }
+
+        .analyzing-message {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: var(--response-font-size, 18px);
+            text-align: center;
+            padding: 40px 20px;
+            font-style: italic;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.7;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
     `;
 
     static properties = {
         responses: { type: Array },
         currentResponseIndex: { type: Number },
         selectedProfile: { type: String },
+        isAnalyzing: { type: Boolean },
         onSendText: { type: Function },
         shouldAnimateResponse: { type: Boolean },
         savedResponses: { type: Array },
@@ -305,6 +324,7 @@ export class AssistantView extends LitElement {
         this.responses = [];
         this.currentResponseIndex = -1;
         this.selectedProfile = 'interview';
+        this.isAnalyzing = false;
         this.onSendText = () => {};
         this._lastAnimatedWordCount = 0;
         // Load saved responses from localStorage
@@ -548,7 +568,7 @@ export class AssistantView extends LitElement {
 
     updated(changedProperties) {
         super.updated(changedProperties);
-        if (changedProperties.has('responses') || changedProperties.has('currentResponseIndex')) {
+        if (changedProperties.has('responses') || changedProperties.has('currentResponseIndex') || changedProperties.has('isAnalyzing')) {
             if (changedProperties.has('currentResponseIndex')) {
                 this._lastAnimatedWordCount = 0;
             }
@@ -560,6 +580,12 @@ export class AssistantView extends LitElement {
         console.log('updateResponseContent called');
         const container = this.shadowRoot.querySelector('#responseContainer');
         if (container) {
+            // Show analyzing message if analyzing
+            if (this.isAnalyzing) {
+                container.innerHTML = '<div class="analyzing-message">AI Analyzing...</div>';
+                return;
+            }
+            
             const currentResponse = this.getCurrentResponse();
             console.log('Current response:', currentResponse);
             const renderedResponse = this.renderMarkdown(currentResponse);

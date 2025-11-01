@@ -18,11 +18,11 @@ describe('API Key Integration', () => {
 
         // Simulate the initialization
         if (!existingApiKey || existingApiKey.trim() === '') {
-            localStorage.setItem('apiKey', 'AIzaSyCNITU0wuhq0kNyK5T0xJq_tQoXlSYUJQY');
+            localStorage.setItem('apiKey', 'AIzaSyC7t10cXt99aqMdFeegdRG5QimM0rShTwA');
         }
 
         const apiKey = localStorage.getItem('apiKey');
-        expect(apiKey).toBe('AIzaSyCNITU0wuhq0kNyK5T0xJq_tQoXlSYUJQY');
+        expect(apiKey).toBe('AIzaSyC7t10cXt99aqMdFeegdRG5QimM0rShTwA');
     });
 
     it('should not override existing API key in localStorage', () => {
@@ -33,7 +33,7 @@ describe('API Key Integration', () => {
         // Simulate the initialization
         const currentApiKey = localStorage.getItem('apiKey');
         if (!currentApiKey || currentApiKey.trim() === '') {
-            localStorage.setItem('apiKey', 'AIzaSyCNITU0wuhq0kNyK5T0xJq_tQoXlSYUJQY');
+            localStorage.setItem('apiKey', 'AIzaSyC7t10cXt99aqMdFeegdRG5QimM0rShTwA');
         }
 
         const apiKey = localStorage.getItem('apiKey');
@@ -47,11 +47,11 @@ describe('API Key Integration', () => {
         // Simulate the initialization
         const currentApiKey = localStorage.getItem('apiKey');
         if (!currentApiKey || currentApiKey.trim() === '') {
-            localStorage.setItem('apiKey', 'AIzaSyCNITU0wuhq0kNyK5T0xJq_tQoXlSYUJQY');
+            localStorage.setItem('apiKey', 'AIzaSyAD9VNXxfs7bmQjbqx8NOhv9oBRj6MI9lc');
         }
 
         const apiKey = localStorage.getItem('apiKey');
-        expect(apiKey).toBe('AIzaSyCNITU0wuhq0kNyK5T0xJq_tQoXlSYUJQY');
+        expect(apiKey).toBe('AIzaSyAD9VNXxfs7bmQjbqx8NOhv9oBRj6MI9lc');
     });
 
     it('should handle whitespace-only API key', () => {
@@ -61,10 +61,10 @@ describe('API Key Integration', () => {
         // Simulate the initialization
         const currentApiKey = localStorage.getItem('apiKey');
         if (!currentApiKey || currentApiKey.trim() === '') {
-            localStorage.setItem('apiKey', 'AIzaSyCNITU0wuhq0kNyK5T0xJq_tQoXlSYUJQY');
+            localStorage.setItem('apiKey', 'AIzaSyAD9VNXxfs7bmQjbqx8NOhv9oBRj6MI9lc');
         }
 
         const apiKey = localStorage.getItem('apiKey');
-        expect(apiKey).toBe('AIzaSyCNITU0wuhq0kNyK5T0xJq_tQoXlSYUJQY');
+        expect(apiKey).toBe('AIzaSyAD9VNXxfs7bmQjbqx8NOhv9oBRj6MI9lc');
     });
 });

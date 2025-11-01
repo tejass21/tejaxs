@@ -47,6 +47,11 @@ app.on('activate', () => {
 });
 
 function setupGeneralIpcHandlers() {
+    // Forward manual screenshot trigger to renderer
+    ipcMain.on('manual-screenshot-triggered', () => {
+        sendToRenderer('manual-screenshot-triggered');
+    });
+    
     // Config-related IPC handlers
     ipcMain.handle('set-onboarded', async (event) => {
         try {

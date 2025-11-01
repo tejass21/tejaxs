@@ -54,8 +54,8 @@ export class OnboardingView extends LitElement {
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 32px 48px;
-            max-width: 500px;
+            padding: 32px 40px;
+            max-width: 480px;
             color: #e5e5e5;
             overflow: hidden;
         }
@@ -69,45 +69,46 @@ export class OnboardingView extends LitElement {
         }
 
         .slide-title {
-            font-size: 28px;
+            font-size: 22px;
             font-weight: 600;
-            margin-bottom: 12px;
-            color: #ffffff;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.95);
             line-height: 1.3;
+            letter-spacing: -0.3px;
         }
 
         .slide-content {
-            font-size: 16px;
+            font-size: 14px;
             line-height: 1.5;
-            margin-bottom: 24px;
-            color: #b8b8b8;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.7);
             font-weight: 400;
         }
 
         .context-textarea {
             width: 100%;
-            height: 100px;
-            padding: 16px;
+            height: 90px;
+            padding: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             background: rgba(255, 255, 255, 0.05);
             color: #e5e5e5;
-            font-size: 14px;
+            font-size: 13px;
             font-family: inherit;
             resize: vertical;
             transition: all 0.2s ease;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .context-textarea::placeholder {
             color: rgba(255, 255, 255, 0.4);
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .context-textarea:focus {
             outline: none;
             border-color: rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.07);
         }
 
         .feature-list {
@@ -117,15 +118,25 @@ export class OnboardingView extends LitElement {
         .feature-item {
             display: flex;
             align-items: center;
-            margin-bottom: 12px;
-            font-size: 15px;
-            color: #b8b8b8;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .feature-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .feature-icon {
             font-size: 16px;
-            margin-right: 12px;
-            opacity: 0.8;
+            margin-right: 10px;
+            opacity: 0.9;
         }
 
         .navigation {
@@ -137,7 +148,7 @@ export class OnboardingView extends LitElement {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px 24px;
+            padding: 14px 20px;
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
             border-top: 1px solid rgba(255, 255, 255, 0.05);
@@ -158,8 +169,10 @@ export class OnboardingView extends LitElement {
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 6px;
             min-width: 36px;
             min-height: 36px;
+            backdrop-filter: blur(10px);
         }
 
         .nav-button:hover {
@@ -168,7 +181,7 @@ export class OnboardingView extends LitElement {
         }
 
         .nav-button:active {
-            transform: scale(0.98);
+            transform: scale(0.96);
         }
 
         .nav-button:disabled {
@@ -182,10 +195,22 @@ export class OnboardingView extends LitElement {
             transform: none;
         }
 
+        .nav-button.get-started {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-button.get-started:hover {
+            background: rgba(255, 255, 255, 0.16);
+        }
+
         .progress-dots {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             align-items: center;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
         }
 
         .dot {
@@ -202,7 +227,7 @@ export class OnboardingView extends LitElement {
         }
 
         .dot.active {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.7);
             transform: scale(1.2);
         }
     `;
@@ -533,9 +558,11 @@ export class OnboardingView extends LitElement {
                         )}
                     </div>
 
-                    <button class="nav-button" @click=${this.nextSlide}>
+                    <button class="nav-button ${this.currentSlide === 4 ? 'get-started' : ''}" @click=${this.nextSlide}>
                         ${this.currentSlide === 4
-                            ? 'Get Started'
+                            ? html`Get Started <svg width="16px" height="16px" stroke-width="2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+                                  </svg>`
                             : html`
                                   <svg width="16px" height="16px" stroke-width="2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                       <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>

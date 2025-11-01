@@ -4,65 +4,80 @@ import { resizeLayout } from '../../utils/windowResize.js';
 export class CustomizeView extends LitElement {
     static styles = css`
         * {
-            font-family:
-                'Inter',
-                -apple-system,
-                BlinkMacSystemFont,
-                sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             cursor: default;
             user-select: none;
+            box-sizing: border-box;
         }
 
         :host {
             display: block;
-            padding: 12px;
+            padding: 20px;
             margin: 0 auto;
-            max-width: 700px;
+            max-width: 800px;
         }
 
         .settings-container {
-            display: grid;
-            gap: 12px;
-            padding-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            padding-bottom: 24px;
         }
 
         .settings-section {
-            background: var(--card-background, rgba(255, 255, 255, 0.04));
-            border: 1px solid var(--card-border, rgba(255, 255, 255, 0.1));
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 24px;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .settings-section:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 6px;
-            padding: 16px;
-            backdrop-filter: blur(10px);
+            padding: 4px;
+        }
+
+        .section-icon svg {
+            width: 16px;
+            height: 16px;
+            opacity: 0.9;
         }
 
         .section-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 600;
-            color: var(--text-color);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .section-title::before {
-            content: '';
-            width: 3px;
-            height: 14px;
-            background: var(--accent-color, #007aff);
-            border-radius: 1.5px;
+            color: rgba(255, 255, 255, 0.95);
+            letter-spacing: -0.2px;
         }
 
         .form-grid {
             display: grid;
-            gap: 12px;
+            gap: 16px;
         }
 
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 16px;
             align-items: start;
         }
 
@@ -75,7 +90,7 @@ export class CustomizeView extends LitElement {
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
         }
 
         .form-group.full-width {
@@ -83,43 +98,47 @@ export class CustomizeView extends LitElement {
         }
 
         .form-label {
-            font-weight: 500;
-            font-size: 12px;
-            color: var(--label-color, rgba(255, 255, 255, 0.9));
+            font-weight: 600;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.9);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .form-description {
-            font-size: 11px;
-            color: var(--description-color, rgba(255, 255, 255, 0.5));
-            line-height: 1.3;
-            margin-top: 2px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.65);
+            line-height: 1.5;
+            margin-top: 4px;
+            user-select: text;
+            cursor: text;
         }
 
         .form-control {
-            background: var(--input-background, rgba(0, 0, 0, 0.3));
-            color: var(--text-color);
-            border: 1px solid var(--input-border, rgba(255, 255, 255, 0.15));
-            padding: 8px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            transition: all 0.15s ease;
-            min-height: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            min-height: 38px;
             font-weight: 400;
+            backdrop-filter: blur(10px);
         }
 
         .form-control:focus {
             outline: none;
-            border-color: var(--focus-border-color, #007aff);
-            box-shadow: 0 0 0 2px var(--focus-shadow, rgba(0, 122, 255, 0.1));
-            background: var(--input-focus-background, rgba(0, 0, 0, 0.4));
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .form-control:hover:not(:focus) {
-            border-color: var(--input-hover-border, rgba(255, 255, 255, 0.2));
-            background: var(--input-hover-background, rgba(0, 0, 0, 0.35));
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
         }
 
         select.form-control {
@@ -153,18 +172,20 @@ export class CustomizeView extends LitElement {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            font-size: 10px;
-            color: var(--success-color, #34d399);
-            background: var(--success-background, rgba(52, 211, 153, 0.1));
-            padding: 2px 6px;
-            border-radius: 3px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.08);
+            padding: 3px 8px;
+            border-radius: 6px;
             font-weight: 500;
-            border: 1px solid var(--success-border, rgba(52, 211, 153, 0.2));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-left: 8px;
         }
 
         .current-selection::before {
-            content: '✓';
-            font-weight: 600;
+            content: '●';
+            font-size: 8px;
+            opacity: 0.8;
         }
 
         .keybind-input {
@@ -186,127 +207,150 @@ export class CustomizeView extends LitElement {
         }
 
         .reset-keybinds-button {
-            background: var(--button-background, rgba(255, 255, 255, 0.1));
-            color: var(--text-color);
-            border: 1px solid var(--button-border, rgba(255, 255, 255, 0.15));
-            padding: 6px 10px;
-            border-radius: 4px;
-            font-size: 11px;
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
         }
 
         .reset-keybinds-button:hover {
-            background: var(--button-hover-background, rgba(255, 255, 255, 0.15));
-            border-color: var(--button-hover-border, rgba(255, 255, 255, 0.25));
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
         }
 
         .reset-keybinds-button:active {
-            transform: translateY(1px);
+            transform: translateY(0);
         }
 
-        .keybinds-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-            border-radius: 4px;
-            overflow: hidden;
+        .reset-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
         }
 
-        .keybinds-table th,
-        .keybinds-table td {
-            padding: 8px 10px;
-            text-align: left;
-            border-bottom: 1px solid var(--table-border, rgba(255, 255, 255, 0.08));
+        .keybinds-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
         }
 
-        .keybinds-table th {
-            background: var(--table-header-background, rgba(255, 255, 255, 0.04));
+        .keybind-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            gap: 16px;
+        }
+
+        .keybind-row:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .keybind-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .action-name {
             font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 13px;
+            letter-spacing: -0.1px;
+        }
+
+        .action-description {
             font-size: 11px;
-            color: var(--label-color, rgba(255, 255, 255, 0.8));
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.4;
+            user-select: text;
+            cursor: text;
         }
 
-        .keybinds-table td {
-            vertical-align: middle;
-        }
-
-        .keybinds-table .action-name {
-            font-weight: 500;
-            color: var(--text-color);
-            font-size: 12px;
-        }
-
-        .keybinds-table .action-description {
-            font-size: 10px;
-            color: var(--description-color, rgba(255, 255, 255, 0.5));
-            margin-top: 1px;
-        }
-
-        .keybinds-table .keybind-input {
-            min-width: 100px;
-            padding: 4px 8px;
-            margin: 0;
-            font-size: 11px;
-        }
-
-        .keybinds-table tr:hover {
-            background: var(--table-row-hover, rgba(255, 255, 255, 0.02));
-        }
-
-        .keybinds-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .table-reset-row {
-            border-top: 1px solid var(--table-border, rgba(255, 255, 255, 0.08));
-        }
-
-        .table-reset-row td {
-            padding-top: 10px;
-            padding-bottom: 8px;
-            border-bottom: none;
+        .keybind-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .settings-note {
-            font-size: 10px;
-            color: var(--note-color, rgba(255, 255, 255, 0.4));
-            font-style: italic;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
             text-align: center;
-            margin-top: 10px;
-            padding: 8px;
-            background: var(--note-background, rgba(255, 255, 255, 0.02));
-            border-radius: 4px;
-            border: 1px solid var(--note-border, rgba(255, 255, 255, 0.08));
+            margin-top: 16px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .settings-note::before {
+            content: '💡';
+            font-size: 16px;
         }
 
         .checkbox-group {
             display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-            padding: 8px;
-            background: var(--checkbox-background, rgba(255, 255, 255, 0.02));
-            border-radius: 4px;
-            border: 1px solid var(--checkbox-border, rgba(255, 255, 255, 0.06));
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-group:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.12);
         }
 
         .checkbox-input {
-            width: 14px;
-            height: 14px;
-            accent-color: var(--focus-border-color, #007aff);
+            width: 18px;
+            height: 18px;
+            accent-color: rgba(255, 255, 255, 0.8);
             cursor: pointer;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .checkbox-label-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .checkbox-label {
-            font-weight: 500;
-            font-size: 12px;
-            color: var(--label-color, rgba(255, 255, 255, 0.9));
+            font-weight: 600;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.95);
             cursor: pointer;
             user-select: none;
+            letter-spacing: -0.1px;
         }
 
         /* Better focus indicators */
@@ -327,7 +371,17 @@ export class CustomizeView extends LitElement {
         .slider-container {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .slider-container:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .slider-header {
@@ -337,13 +391,13 @@ export class CustomizeView extends LitElement {
         }
 
         .slider-value {
-            font-size: 11px;
-            color: var(--success-color, #34d399);
-            background: var(--success-background, rgba(52, 211, 153, 0.1));
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-weight: 500;
-            border: 1px solid var(--success-border, rgba(52, 211, 153, 0.2));
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.08);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
         }
 
@@ -351,50 +405,59 @@ export class CustomizeView extends LitElement {
             -webkit-appearance: none;
             appearance: none;
             width: 100%;
-            height: 4px;
-            border-radius: 2px;
-            background: var(--input-background, rgba(0, 0, 0, 0.3));
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.08);
             outline: none;
-            border: 1px solid var(--input-border, rgba(255, 255, 255, 0.15));
+            border: 1px solid rgba(255, 255, 255, 0.1);
             cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .slider-input:hover {
+            background: rgba(255, 255, 255, 0.12);
         }
 
         .slider-input::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            background: var(--focus-border-color, #007aff);
+            background: rgba(255, 255, 255, 0.95);
             cursor: pointer;
-            border: 2px solid var(--text-color, white);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
         }
 
         .slider-input::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            background: var(--focus-border-color, #007aff);
+            background: rgba(255, 255, 255, 0.95);
             cursor: pointer;
-            border: 2px solid var(--text-color, white);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
         }
 
         .slider-input:hover::-webkit-slider-thumb {
-            background: var(--text-input-button-hover, #0056b3);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
 
         .slider-input:hover::-moz-range-thumb {
-            background: var(--text-input-button-hover, #0056b3);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
 
         .slider-labels {
             display: flex;
             justify-content: space-between;
-            margin-top: 4px;
-            font-size: 10px;
-            color: var(--description-color, rgba(255, 255, 255, 0.5));
+            margin-top: 6px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
         }
     `;
 
@@ -867,8 +930,14 @@ export class CustomizeView extends LitElement {
             <div class="settings-container">
                 <!-- Profile & Behavior Section -->
                 <div class="settings-section">
-                    <div class="section-title">
-                        <span>AI Profile & Behavior</span>
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M20.59 22C20.59 18.13 16.74 15 12 15C7.26 15 3.41 18.13 3.41 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="section-title">AI Profile & Behavior</div>
                     </div>
 
                     <div class="form-grid">
@@ -911,8 +980,13 @@ export class CustomizeView extends LitElement {
 
                 <!-- Audio & Microphone Section -->
                 <div class="settings-section">
-                    <div class="section-title">
-                        <span>Audio & Microphone</span>
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M19 10V11C19 14.866 15.866 18 12 18M5 10V11C5 14.866 8.13401 18 12 18M12 18V22M12 6V14M12 6C9.79086 6 8 7.79086 8 10V14C8 16.2091 9.79086 18 12 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="section-title">Audio & Microphone</div>
                     </div>
                     <div class="form-grid">
                         <div class="form-group">
@@ -931,8 +1005,14 @@ export class CustomizeView extends LitElement {
 
                 <!-- Stealth Profile Section -->
                 <div class="settings-section">
-                    <div class="section-title">
-                        <span>Stealth Profile</span>
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 8V12M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="section-title">Stealth Profile</div>
                     </div>
                     <div class="form-grid">
                         <div class="form-group">
@@ -956,8 +1036,14 @@ export class CustomizeView extends LitElement {
 
                 <!-- Language & Audio Section -->
                 <div class="settings-section">
-                    <div class="section-title">
-                        <span>Language & Audio</span>
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="section-title">Language & Audio</div>
                     </div>
 
                     <div class="form-grid">
@@ -984,8 +1070,13 @@ export class CustomizeView extends LitElement {
 
                 <!-- Interface Layout Section -->
                 <div class="settings-section">
-                    <div class="section-title">
-                        <span>Interface Layout</span>
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 5H20M4 12H20M4 19H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="section-title">Interface Layout</div>
                     </div>
 
                     <div class="form-grid">
@@ -1065,8 +1156,14 @@ export class CustomizeView extends LitElement {
 
                 <!-- Screen Capture Section -->
                 <div class="settings-section">
-                    <div class="section-title">
-                        <span>Screen Capture Settings</span>
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 8V4C4 2.89543 4.89543 2 6 2H20C21.1046 2 22 2.89543 22 4V16C22 17.1046 21.1046 18 20 18H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M2 12H18C19.1046 12 20 12.8954 20 14V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V14C4 12.8954 4.89543 12 6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="section-title">Screen Capture Settings</div>
                     </div>
 
                     <div class="form-grid">
@@ -1122,58 +1219,60 @@ export class CustomizeView extends LitElement {
 
                 <!-- Keyboard Shortcuts Section -->
                 <div class="settings-section">
-                    <div class="section-title">
-                        <span>Keyboard Shortcuts</span>
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 4H18C19.1046 4 20 4.89543 20 6V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V6C4 4.89543 4.89543 4 6 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M10 8H14M8 12H16M10 16H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="section-title">Keyboard Shortcuts</div>
                     </div>
 
-                    <table class="keybinds-table">
-                        <thead>
-                            <tr>
-                                <th>Action</th>
-                                <th>Shortcut</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${this.getKeybindActions().map(
-                                action => html`
-                                    <tr>
-                                        <td>
-                                            <div class="action-name">${action.name}</div>
-                                            <div class="action-description">${action.description}</div>
-                                        </td>
-                                        <td>
-                                            <input
-                                                type="text"
-                                                class="form-control keybind-input"
-                                                .value=${this.keybinds[action.key]}
-                                                placeholder="Press keys..."
-                                                data-action=${action.key}
-                                                @keydown=${this.handleKeybindInput}
-                                                @focus=${this.handleKeybindFocus}
-                                                readonly
-                                            />
-                                        </td>
-                                    </tr>
-                                `
-                            )}
-                            <tr class="table-reset-row">
-                                <td colspan="2">
-                                    <button class="reset-keybinds-button" @click=${this.resetKeybinds}>Reset to Defaults</button>
-                                    <div class="form-description" style="margin-top: 8px;">
-                                        Restore all keyboard shortcuts to their default values
+                    <div class="keybinds-container">
+                        ${this.getKeybindActions().map(
+                            action => html`
+                                <div class="keybind-row">
+                                    <div class="keybind-info">
+                                        <div class="action-name">${action.name}</div>
+                                        <div class="action-description">${action.description}</div>
                                     </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                    <div class="keybind-input-wrapper">
+                                        <input
+                                            type="text"
+                                            class="form-control keybind-input"
+                                            .value=${this.keybinds[action.key]}
+                                            placeholder="Press keys..."
+                                            data-action=${action.key}
+                                            @keydown=${this.handleKeybindInput}
+                                            @focus=${this.handleKeybindFocus}
+                                            readonly
+                                        />
+                                    </div>
+                                </div>
+                            `
+                        )}
+                    </div>
+                    
+                    <div class="reset-section">
+                        <div class="form-description">
+                            Restore all keyboard shortcuts to their default values
+                        </div>
+                        <button class="reset-keybinds-button" @click=${this.resetKeybinds}>Reset to Defaults</button>
+                    </div>
                 </div>
 
 
 
                 <!-- Google Search Section -->
                 <div class="settings-section">
-                    <div class="section-title">
-                        <span>Google Search</span>
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="section-title">Google Search</div>
                     </div>
 
                     <div class="form-grid">
@@ -1185,39 +1284,45 @@ export class CustomizeView extends LitElement {
                                 .checked=${this.googleSearchEnabled}
                                 @change=${this.handleGoogleSearchChange}
                             />
-                            <label for="google-search-enabled" class="checkbox-label"> Enable Google Search </label>
-                        </div>
-                        <div class="form-description" style="margin-left: 24px; margin-top: -8px;">
-                            Allow the AI to search Google for up-to-date information and facts during conversations
-                            <br /><strong>Note:</strong> Changes take effect when starting a new AI session
+                            <div class="checkbox-label-wrapper">
+                                <label for="google-search-enabled" class="checkbox-label">Enable Google Search</label>
+                                <div class="form-description">
+                                    Allow the AI to search Google for up-to-date information and facts during conversations. Changes take effect when starting a new AI session.
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="settings-note">
-                    💡 Settings are automatically saved as you change them. Changes will take effect immediately or on the next session start.
+                    Settings are automatically saved as you change them. Changes will take effect immediately or on the next session start.
                 </div>
 
                 <!-- Advanced Mode Section (Danger Zone) -->
-                <div class="settings-section" style="border-color: var(--danger-border, rgba(239, 68, 68, 0.3)); background: var(--danger-background, rgba(239, 68, 68, 0.05));">
-                    <div class="section-title" style="color: var(--danger-color, #ef4444);">
-                        <span>⚠️ Advanced Mode</span>
+                <div class="settings-section" style="border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);">
+                    <div class="section-header">
+                        <div class="section-icon" style="background: rgba(239, 68, 68, 0.15);">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="section-title" style="color: rgba(239, 68, 68, 0.9);">Advanced Mode</div>
                     </div>
 
                     <div class="form-grid">
                         <div class="checkbox-group">
-                                <input
-                                    type="checkbox"
-                                    class="checkbox-input"
-                                    id="advanced-mode"
-                                    .checked=${this.advancedMode}
-                                    @change=${this.handleAdvancedModeChange}
-                                />
-                                <label for="advanced-mode" class="checkbox-label"> Enable Advanced Mode </label>
-                            </div>
-                            <div class="form-description" style="margin-left: 24px; margin-top: -8px;">
-                                Unlock experimental features, developer tools, and advanced configuration options
-                                <br /><strong>Note:</strong> Advanced mode adds a new icon to the main navigation bar
+                            <input
+                                type="checkbox"
+                                class="checkbox-input"
+                                id="advanced-mode"
+                                .checked=${this.advancedMode}
+                                @change=${this.handleAdvancedModeChange}
+                            />
+                            <div class="checkbox-label-wrapper">
+                                <label for="advanced-mode" class="checkbox-label">Enable Advanced Mode</label>
+                                <div class="form-description">
+                                    Unlock experimental features, developer tools, and advanced configuration options. Advanced mode adds a new icon to the main navigation bar.
+                                </div>
                             </div>
                         </div>
                     </div>

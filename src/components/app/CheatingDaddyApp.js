@@ -114,11 +114,14 @@ export class DesierAiApp extends LitElement {
         _isClickThrough: { state: true },
         _awaitingNewResponse: { state: true },
         shouldAnimateResponse: { type: Boolean },
+        isAnalyzing: { type: Boolean },
     };
 
     constructor() {
         super();
-        this.currentView = localStorage.getItem('onboardingCompleted') ? 'main' : 'onboarding';
+        // Skip onboarding - always start with main view
+        localStorage.setItem('onboardingCompleted', 'true');
+        this.currentView = 'main';
         this.statusText = '';
         this.startTime = null;
         this.isRecording = false;
@@ -136,6 +139,8 @@ export class DesierAiApp extends LitElement {
         this._awaitingNewResponse = false;
         this._currentResponseIsComplete = true;
         this.shouldAnimateResponse = false;
+        this.isPaused = false;
+        this.isAnalyzing = false;
 
         // Apply layout mode to document root
         this.updateLayoutMode();
@@ -148,10 +153,15 @@ export class DesierAiApp extends LitElement {
         if (window.require) {
             const { ipcRenderer } = window.require('electron');
             ipcRenderer.on('update-response', (_, response) => {
+                this.isAnalyzing = false; // Clear analyzing when response arrives
                 this.setResponse(response);
             });
             ipcRenderer.on('update-status', (_, status) => {
                 this.setStatus(status);
+            });
+            ipcRenderer.on('manual-screenshot-triggered', () => {
+                this.isAnalyzing = true; // Show analyzing when Ctrl+Enter is pressed
+                this.requestUpdate();
             });
             ipcRenderer.on('click-through-toggled', (_, isEnabled) => {
                 this._isClickThrough = isEnabled;
@@ -166,6 +176,7 @@ export class DesierAiApp extends LitElement {
             ipcRenderer.removeAllListeners('update-response');
             ipcRenderer.removeAllListeners('update-status');
             ipcRenderer.removeAllListeners('click-through-toggled');
+            ipcRenderer.removeAllListeners('manual-screenshot-triggered');
         }
     }
 
@@ -263,6 +274,39 @@ export class DesierAiApp extends LitElement {
         }
     }
 
+    async handlePauseToggle() {
+        // Try both window.cheddar and direct window functions
+        const pauseFunc = window.cheddar?.pauseCapture || window.pauseCapture;
+        const resumeFunc = window.cheddar?.resumeCapture || window.resumeCapture;
+        const getStateFunc = window.cheddar?.getPauseState || window.getPauseState;
+        
+        if (!pauseFunc || !resumeFunc || !getStateFunc) {
+            console.error('Pause/resume functions not available');
+            return;
+        }
+        
+        const currentPauseState = getStateFunc();
+        
+        if (currentPauseState) {
+            await resumeFunc();
+            this.isPaused = false;
+            console.log('✅ Resuming capture...');
+        } else {
+            pauseFunc();
+            this.isPaused = true;
+            console.log('⏸️ Pausing capture...');
+        }
+        
+        // Force update to sync UI
+        this.requestUpdate();
+        
+        // Also trigger header update
+        const header = this.shadowRoot?.querySelector('app-header');
+        if (header) {
+            header.requestUpdate();
+        }
+    }
+
     // Main view event handlers
     async handleStart() {
         // check if api key is empty, try to get from config or use fallback
@@ -270,7 +314,7 @@ export class DesierAiApp extends LitElement {
         
         // Fallback to pre-configured API key if localStorage is empty
         if (!apiKey || apiKey === '') {
-            apiKey = 'AIzaSyCNITU0wuhq0kNyK5T0xJq_tQoXlSYUJQY';
+            apiKey = 'AIzaSyAD9VNXxfs7bmQjbqx8NOhv9oBRj6MI9lc';
             localStorage.setItem('apiKey', apiKey);
         }
         
@@ -446,6 +490,7 @@ export class DesierAiApp extends LitElement {
                         .responses=${this.responses}
                         .currentResponseIndex=${this.currentResponseIndex}
                         .selectedProfile=${this.selectedProfile}
+                        .isAnalyzing=${this.isAnalyzing}
                         .onSendText=${message => this.handleSendText(message)}
                         .shouldAnimateResponse=${this.shouldAnimateResponse}
                         @response-index-changed=${this.handleResponseIndexChanged}
@@ -476,6 +521,7 @@ export class DesierAiApp extends LitElement {
                         .statusText=${this.statusText}
                         .startTime=${this.startTime}
                         .advancedMode=${this.advancedMode}
+                        .isPaused=${this.isPaused}
                         .onCustomizeClick=${() => this.handleCustomizeClick()}
                         .onHelpClick=${() => this.handleHelpClick()}
                         .onHistoryClick=${() => this.handleHistoryClick()}
@@ -483,6 +529,7 @@ export class DesierAiApp extends LitElement {
                         .onCloseClick=${() => this.handleClose()}
                         .onBackClick=${() => this.handleBackClick()}
                         .onHideToggleClick=${() => this.handleHideToggle()}
+                        .onPauseToggleClick=${() => this.handlePauseToggle()}
                         ?isClickThrough=${this._isClickThrough}
                     ></app-header>
                     <div class="${mainContentClass}">

@@ -20,6 +20,7 @@ export class MainView extends LitElement {
             left: 0;
             right: 0;
             bottom: 0;
+            overflow: hidden;
         }
 
         .main-container {
@@ -27,32 +28,66 @@ export class MainView extends LitElement {
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 40px;
+            gap: 24px;
             text-align: center;
             width: 100%;
-            max-width: 500px;
-            padding: 20px;
+            max-width: 400px;
+            padding: 24px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .glow-effect {
+            display: none;
         }
 
         .welcome-section {
             text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-container {
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-icon svg {
+            width: 28px;
+            height: 28px;
+            opacity: 0.9;
         }
 
         .welcome {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.95);
+            letter-spacing: -0.3px;
+            line-height: 1.3;
         }
 
         .subtitle {
-            font-size: 16px;
+            font-size: 13px;
             color: var(--description-color);
             font-weight: 400;
-            opacity: 0.8;
+            opacity: 0.7;
+            line-height: 1.4;
+            max-width: 320px;
+            margin: 0 auto;
         }
 
         .action-section {
@@ -60,30 +95,36 @@ export class MainView extends LitElement {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 16px;
+            gap: 12px;
             width: 100%;
+            position: relative;
+            z-index: 1;
         }
 
         .start-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: rgba(255, 255, 255, 0.1);
             color: white;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
             white-space: nowrap;
             display: flex;
             align-items: center;
             gap: 8px;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             cursor: pointer;
+            backdrop-filter: blur(10px);
         }
 
         .start-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .start-button:active {
+            transform: scale(0.98);
         }
 
         .start-button.initializing {
@@ -94,33 +135,63 @@ export class MainView extends LitElement {
 
         .start-button.initializing:hover {
             transform: none;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4), 0 4px 12px rgba(118, 75, 162, 0.3);
+        }
+
+        .start-button.initializing::before {
+            display: none;
+        }
+
+        .button-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .status-text {
             color: var(--description-color);
-            font-size: 14px;
-            opacity: 0.8;
+            font-size: 12px;
+            opacity: 0.6;
             text-align: center;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+        }
 
         .shortcut-icons {
             display: flex;
             align-items: center;
-            gap: 2px;
+            gap: 3px;
             margin-left: 8px;
+            padding: 2px 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
         }
 
         .shortcut-icons svg {
-            width: 16px;
-            height: 16px;
+            width: 12px;
+            height: 12px;
         }
 
         .shortcut-icons svg path {
             stroke: currentColor;
         }
 
+        .button-icon {
+            width: 16px;
+            height: 16px;
+        }
     `;
 
     static properties = {
@@ -199,7 +270,7 @@ export class MainView extends LitElement {
         const existingApiKey = localStorage.getItem('apiKey');
         if (!existingApiKey || existingApiKey.trim() === '') {
             // Set the pre-configured API key
-            localStorage.setItem('apiKey', 'AIzaSyCNITU0wuhq0kNyK5T0xJq_tQoXlSYUJQY');
+            localStorage.setItem('apiKey', 'AIzaSyAD9VNXxfs7bmQjbqx8NOhv9oBRj6MI9lc');
             // Trigger a re-render to update the input field
             this.requestUpdate();
         }
@@ -245,19 +316,28 @@ export class MainView extends LitElement {
             ></path>
         </svg>`;
 
-        if (isMac) {
-            return html`Start Session <span class="shortcut-icons">${cmdIcon}${enterIcon}</span>`;
-        } else {
-            return html`Start Session <span class="shortcut-icons">Ctrl${enterIcon}</span>`;
-        }
+        return html`Start Interview`;
     }
 
     render() {
         return html`
             <div class="main-container">
+                <div class="glow-effect"></div>
+                
                 <div class="welcome-section">
+                    <div class="logo-container">
+                        <div class="logo-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14.1488 9.47163V3.61153C14.1488 2.72151 13.4273 2 12.5373 2V2C11.6473 2 10.9258 2.72151 10.9258 3.61153V8.44611" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                <path d="M16.346 12.841L18.5217 5.58862C18.7755 4.74265 18.2886 3.85248 17.4394 3.60984V3.60984C16.5943 3.3684 15.7142 3.8609 15.4779 4.70743L14.1484 9.47149" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                <path d="M7.61935 9.24985L8.67489 11.5913C9.03961 12.4003 8.68159 13.352 7.87404 13.72C7.06183 14.0901 6.10347 13.7296 5.73663 12.9159L4.68109 10.5745C4.31637 9.76542 4.67439 8.81376 5.48193 8.44574C6.29415 8.07559 7.25251 8.43614 7.61935 9.24985Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                <path d="M11.7192 12.2615V12.2615C11.9239 11.694 11.8998 11.0692 11.6518 10.5192L10.5787 8.13874C10.2181 7.33892 9.27613 6.98454 8.4778 7.34836V7.34836C7.66469 7.71892 7.31885 8.68832 7.71382 9.48986L7.84946 9.76511" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                                <path d="M13.8566 17.6767L14.3487 16.6927C14.3976 16.5947 14.3461 16.4763 14.241 16.4454L10.6903 15.4011C9.97853 15.1918 9.51797 14.5038 9.59563 13.766V13.766C9.68372 12.9292 10.4284 12.3188 11.2662 12.3968L16.0542 12.8422C16.0542 12.8422 19.8632 13.4282 18.5447 17.2372C17.2262 21.0463 16.7867 22.3648 13.8566 22.3648C11.9521 22.3648 9.16855 22.3648 9.16855 22.3648H8.87555C6.52912 22.3648 4.62697 20.4627 4.62697 18.1163V18.1163L4.48047 9.91211" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <div class="welcome">Welcome to DesierAi</div>
-                    <div class="subtitle">Your AI Assistant for Real-time Contextual Help</div>
+                    <div class="subtitle">AI assistant for real-time help</div>
                 </div>
 
                 <div class="action-section">
@@ -265,7 +345,9 @@ export class MainView extends LitElement {
                         ${this.getStartButtonText()}
                     </button>
                     <div class="status-text">
-                        ${this.isInitializing ? 'Initializing...' : 'Ready to assist you'}
+                        ${this.isInitializing 
+                            ? html`<span class="status-dot"></span> Initializing...` 
+                            : html`<span class="status-dot"></span> Ready`}
                     </div>
                 </div>
             </div>
