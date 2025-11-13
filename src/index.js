@@ -3,6 +3,50 @@ if (require('electron-squirrel-startup')) {
 }
 
 const { app, BrowserWindow, shell, ipcMain } = require('electron');
+const path = require('path');
+
+function decodeRtfContent(content) {
+    if (!content) {
+        return '';
+    }
+
+    let text = content.replace(/\\par[d]?/gi, '\n');
+
+    text = text.replace(/\\'[0-9a-fA-F]{2}/g, match => {
+        try {
+            return String.fromCharCode(parseInt(match.slice(2), 16));
+        } catch (error) {
+            return '';
+        }
+    });
+
+    text = text.replace(/\\[a-z]+\d* ?/gi, '');
+    text = text.replace(/[{}]/g, '');
+
+    return text;
+}
+
+function loadPdfParse() {
+    const module = require('pdf-parse');
+    if (typeof module === 'function') {
+        return module;
+    }
+    if (module && typeof module.default === 'function') {
+        return module.default;
+    }
+    throw new Error('pdf-parse module did not export a parser function.');
+}
+
+function loadMammoth() {
+    const module = require('mammoth');
+    if (module && typeof module.extractRawText === 'function') {
+        return module;
+    }
+    if (module && module.default && typeof module.default.extractRawText === 'function') {
+        return module.default;
+    }
+    throw new Error('mammoth module did not expose extractRawText().');
+}
 const { createWindow, updateGlobalShortcuts } = require('./utils/window');
 const { setupGeminiIpcHandlers, stopMacOSAudioCapture, sendToRenderer } = require('./utils/gemini');
 const { initializeRandomProcessNames } = require('./utils/processRandomizer');
@@ -127,6 +171,55 @@ function setupGeneralIpcHandlers() {
         } catch (error) {
             console.error('Error opening external URL:', error);
             return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('process-resume-file', async (event, payload) => {
+        try {
+            if (!payload || !payload.name || !payload.data) {
+                throw new Error('Invalid file payload.');
+            }
+
+            const { name, data, type } = payload;
+            const buffer = Buffer.from(data, 'base64');
+            const extension = path.extname(name).toLowerCase();
+
+            let extractedText = '';
+
+            if (extension === '.pdf' || type === 'application/pdf') {
+                const pdfParse = loadPdfParse();
+                const result = await pdfParse(buffer);
+                extractedText = result.text || '';
+            } else if (
+                extension === '.docx' ||
+                type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            ) {
+                const mammoth = loadMammoth();
+                const result = await mammoth.extractRawText({ buffer });
+                extractedText = result.value || '';
+            } else if (extension === '.rtf' || type === 'application/rtf' || type === 'text/rtf') {
+                const raw = buffer.toString('utf8');
+                extractedText = decodeRtfContent(raw);
+            } else if (extension === '.txt' || extension === '.md' || (type && type.startsWith('text/'))) {
+                extractedText = buffer.toString('utf8');
+            } else {
+                // Fallback: attempt UTF-8 decoding for other file types
+                extractedText = buffer.toString('utf8');
+            }
+
+            extractedText = extractedText.replace(/\u0000/g, '').trim();
+            if (extractedText.length > 20000) {
+                extractedText = extractedText.slice(0, 20000);
+            }
+
+            if (!extractedText) {
+                throw new Error('No readable text detected in the uploaded file.');
+            }
+
+            return { success: true, text: extractedText };
+        } catch (error) {
+            console.error('Error processing resume file:', error);
+            return { success: false, error: error.message || 'Failed to process file.' };
         }
     });
 

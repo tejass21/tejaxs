@@ -26,15 +26,16 @@ export class MainView extends LitElement {
         .main-container {
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
-            gap: 24px;
-            text-align: center;
+            gap: 16px;
             width: 100%;
-            max-width: 400px;
-            padding: 24px 20px;
+            max-width: 480px;
+            padding: 24px;
             position: relative;
             z-index: 1;
+            height: 100%;
+            overflow-y: auto;
         }
 
         .glow-effect {
@@ -45,82 +46,175 @@ export class MainView extends LitElement {
             text-align: center;
             position: relative;
             z-index: 1;
+            width: 100%;
+            padding: 24px 16px;
+            border-radius: 12px;
+            margin-bottom: 8px;
         }
 
         .logo-container {
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
+        }
+
+        .logo-glow {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, rgba(118, 75, 162, 0.6), rgba(118, 75, 162, 0) 60%);
+            filter: blur(24px);
+            opacity: 0.55;
+            animation: pulseGlow 4s ease-in-out infinite;
+            transform-origin: center;
         }
 
         .logo-icon {
-            width: 48px;
-            height: 48px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
             display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
         }
 
-        .logo-icon svg {
-            width: 28px;
-            height: 28px;
-            opacity: 0.9;
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                transform: scale(0.9);
+                opacity: 0.45;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.75;
+            }
+            100% {
+                transform: scale(0.9);
+                opacity: 0.45;
+            }
         }
 
         .welcome {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 600;
-            margin-bottom: 8px;
-            color: rgba(255, 255, 255, 0.95);
-            letter-spacing: -0.3px;
+            margin-bottom: 4px;
+            color: rgba(255, 255, 255, 0.98);
+            letter-spacing: -0.2px;
             line-height: 1.3;
         }
 
         .subtitle {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--description-color);
             font-weight: 400;
-            opacity: 0.7;
-            line-height: 1.4;
-            max-width: 320px;
-            margin: 0 auto;
+            opacity: 0.8;
+            line-height: 1.5;
+            max-width: 100%;
+            margin: 0 auto 16px;
         }
 
         .action-section {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 12px;
+            gap: 18px;
             width: 100%;
+            max-width: 360px;
             position: relative;
             z-index: 1;
+            margin: 10px auto 0;
+        }
+
+        .step-card {
+            background: rgba(249, 250, 251, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: left;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(4px);
+            width: 100%;
+        }
+
+        .step-card:hover {
+            background: rgba(249, 250, 251, 0.03);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .step-number {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .step-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.95);
+            margin: 0;
+            letter-spacing: 0.01em;
+        }
+
+        .step-description {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            margin: 6px 0 0 34px;
+            line-height: 1.5;
+            font-weight: 400;
         }
 
         .start-button {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 10px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 10px 22px;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             white-space: nowrap;
-            display: flex;
+            display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             transition: all 0.2s ease;
             cursor: pointer;
-            backdrop-filter: blur(10px);
+            width: auto;
+            margin: 6px auto 0;
+            align-self: center;
+            backdrop-filter: blur(4px);
         }
 
         .start-button:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.12);
         }
 
         .start-button:active {
@@ -160,6 +254,7 @@ export class MainView extends LitElement {
             align-items: center;
             justify-content: center;
             gap: 6px;
+            margin: 0 auto;
         }
 
         .status-dot {
@@ -326,18 +421,13 @@ export class MainView extends LitElement {
                 
                 <div class="welcome-section">
                     <div class="logo-container">
+                        <div class="logo-glow"></div>
                         <div class="logo-icon">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M14.1488 9.47163V3.61153C14.1488 2.72151 13.4273 2 12.5373 2V2C11.6473 2 10.9258 2.72151 10.9258 3.61153V8.44611" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                                <path d="M16.346 12.841L18.5217 5.58862C18.7755 4.74265 18.2886 3.85248 17.4394 3.60984V3.60984C16.5943 3.3684 15.7142 3.8609 15.4779 4.70743L14.1484 9.47149" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                                <path d="M7.61935 9.24985L8.67489 11.5913C9.03961 12.4003 8.68159 13.352 7.87404 13.72C7.06183 14.0901 6.10347 13.7296 5.73663 12.9159L4.68109 10.5745C4.31637 9.76542 4.67439 8.81376 5.48193 8.44574C6.29415 8.07559 7.25251 8.43614 7.61935 9.24985Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                                <path d="M11.7192 12.2615V12.2615C11.9239 11.694 11.8998 11.0692 11.6518 10.5192L10.5787 8.13874C10.2181 7.33892 9.27613 6.98454 8.4778 7.34836V7.34836C7.66469 7.71892 7.31885 8.68832 7.71382 9.48986L7.84946 9.76511" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                                <path d="M13.8566 17.6767L14.3487 16.6927C14.3976 16.5947 14.3461 16.4763 14.241 16.4454L10.6903 15.4011C9.97853 15.1918 9.51797 14.5038 9.59563 13.766V13.766C9.68372 12.9292 10.4284 12.3188 11.2662 12.3968L16.0542 12.8422C16.0542 12.8422 19.8632 13.4282 18.5447 17.2372C17.2262 21.0463 16.7867 22.3648 13.8566 22.3648C11.9521 22.3648 9.16855 22.3648 9.16855 22.3648H8.87555C6.52912 22.3648 4.62697 20.4627 4.62697 18.1163V18.1163L4.48047 9.91211" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                            </svg>
+                            <img src="assets/logo.jpg" alt="DesierAi logo" loading="lazy" />
                         </div>
                     </div>
                     <div class="welcome">Welcome to DesierAi</div>
-                    <div class="subtitle">AI assistant for real-time help</div>
+                    <div class="subtitle">The No.1 Undetectable AI for Interviews</div>
                 </div>
 
                 <div class="action-section">

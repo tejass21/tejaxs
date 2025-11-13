@@ -115,6 +115,9 @@ export class DesierAiApp extends LitElement {
         _awaitingNewResponse: { state: true },
         shouldAnimateResponse: { type: Boolean },
         isAnalyzing: { type: Boolean },
+        assistantMessageDraft: { type: String },
+        pauseStartTime: { type: Number },
+        totalPausedDuration: { type: Number },
     };
 
     constructor() {
@@ -141,6 +144,9 @@ export class DesierAiApp extends LitElement {
         this.shouldAnimateResponse = false;
         this.isPaused = false;
         this.isAnalyzing = false;
+        this.assistantMessageDraft = '';
+        this.pauseStartTime = null;
+        this.totalPausedDuration = 0;
 
         // Apply layout mode to document root
         this.updateLayoutMode();
@@ -257,6 +263,10 @@ export class DesierAiApp extends LitElement {
             }
             this.sessionActive = false;
             this.currentView = 'main';
+            this.startTime = null;
+            this.pauseStartTime = null;
+            this.totalPausedDuration = 0;
+            this.isPaused = false;
             console.log('Session closed');
         } else {
             // Quit the entire application
@@ -290,10 +300,17 @@ export class DesierAiApp extends LitElement {
         if (currentPauseState) {
             await resumeFunc();
             this.isPaused = false;
+            if (this.pauseStartTime) {
+                this.totalPausedDuration += Date.now() - this.pauseStartTime;
+                this.pauseStartTime = null;
+            }
             console.log('✅ Resuming capture...');
         } else {
             pauseFunc();
             this.isPaused = true;
+            if (!this.pauseStartTime) {
+                this.pauseStartTime = Date.now();
+            }
             console.log('⏸️ Pausing capture...');
         }
         
@@ -329,6 +346,9 @@ export class DesierAiApp extends LitElement {
         this.responses = [];
         this.currentResponseIndex = -1;
         this.startTime = Date.now();
+        this.totalPausedDuration = 0;
+        this.pauseStartTime = null;
+        this.isPaused = false;
         this.currentView = 'assistant';
     }
 
@@ -391,6 +411,68 @@ export class DesierAiApp extends LitElement {
     handleResponseIndexChanged(e) {
         this.currentResponseIndex = e.detail.index;
         this.shouldAnimateResponse = false;
+        this.requestUpdate();
+    }
+
+    getAssistantView() {
+        return this.shadowRoot?.querySelector('assistant-view');
+    }
+
+    getAssistantControlsState() {
+        const responses = this.responses || [];
+        const currentIndex = this.currentResponseIndex;
+        const totalResponses = responses.length;
+        const assistantView = this.getAssistantView();
+        const responseCounter =
+            assistantView?.getResponseCounter?.() ??
+            (totalResponses > 0 && currentIndex >= 0 ? `${currentIndex + 1}/${totalResponses}` : totalResponses > 0 ? `0/${totalResponses}` : '');
+        const isSaved = assistantView?.isResponseSaved?.() ?? false;
+
+        return {
+            canNavigatePrevious: currentIndex > 0,
+            canNavigateNext: currentIndex >= 0 && currentIndex < totalResponses - 1,
+            responseCounter,
+            isSaved,
+        };
+    }
+
+    handleAssistantInputChange(e) {
+        this.assistantMessageDraft = e.target.value;
+    }
+
+    handleAssistantInputKeydown(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            this.handleAssistantSend();
+        }
+    }
+
+    async handleAssistantSend() {
+        const message = this.assistantMessageDraft.trim();
+        if (!message) {
+            return;
+        }
+
+        this.assistantMessageDraft = '';
+        await this.handleSendText(message);
+        this.requestUpdate();
+    }
+
+    handleAssistantNavigatePrevious() {
+        const assistantView = this.getAssistantView();
+        assistantView?.navigateToPreviousResponse();
+        this.requestUpdate();
+    }
+
+    handleAssistantNavigateNext() {
+        const assistantView = this.getAssistantView();
+        assistantView?.navigateToNextResponse();
+        this.requestUpdate();
+    }
+
+    handleAssistantSave() {
+        const assistantView = this.getAssistantView();
+        assistantView?.saveCurrentResponse();
         this.requestUpdate();
     }
 
@@ -493,6 +575,7 @@ export class DesierAiApp extends LitElement {
                         .isAnalyzing=${this.isAnalyzing}
                         .onSendText=${message => this.handleSendText(message)}
                         .shouldAnimateResponse=${this.shouldAnimateResponse}
+                        .showInputBar=${false}
                         @response-index-changed=${this.handleResponseIndexChanged}
                         @response-animation-complete=${() => {
                             this.shouldAnimateResponse = false;
@@ -516,22 +599,46 @@ export class DesierAiApp extends LitElement {
         return html`
             <div class="window-container">
                 <div class="container">
-                    <app-header
-                        .currentView=${this.currentView}
-                        .statusText=${this.statusText}
-                        .startTime=${this.startTime}
-                        .advancedMode=${this.advancedMode}
-                        .isPaused=${this.isPaused}
-                        .onCustomizeClick=${() => this.handleCustomizeClick()}
-                        .onHelpClick=${() => this.handleHelpClick()}
-                        .onHistoryClick=${() => this.handleHistoryClick()}
-                        .onAdvancedClick=${() => this.handleAdvancedClick()}
-                        .onCloseClick=${() => this.handleClose()}
-                        .onBackClick=${() => this.handleBackClick()}
-                        .onHideToggleClick=${() => this.handleHideToggle()}
-                        .onPauseToggleClick=${() => this.handlePauseToggle()}
-                        ?isClickThrough=${this._isClickThrough}
-                    ></app-header>
+                    ${(() => {
+                        const assistantControls = this.currentView === 'assistant' ? this.getAssistantControlsState() : null;
+                        return html`
+                            <app-header
+                                .currentView=${this.currentView}
+                                .statusText=${this.statusText}
+                                .startTime=${this.startTime}
+                                .pauseStartTime=${this.pauseStartTime ?? undefined}
+                                .totalPausedDuration=${this.totalPausedDuration ?? 0}
+                                .advancedMode=${this.advancedMode}
+                                .isPaused=${this.isPaused}
+                                .onCustomizeClick=${() => this.handleCustomizeClick()}
+                                .onHelpClick=${() => this.handleHelpClick()}
+                                .onHistoryClick=${() => this.handleHistoryClick()}
+                                .onAdvancedClick=${() => this.handleAdvancedClick()}
+                                .onCloseClick=${() => this.handleClose()}
+                                .onBackClick=${() => this.handleBackClick()}
+                                .onHideToggleClick=${() => this.handleHideToggle()}
+                                .onPauseToggleClick=${() => this.handlePauseToggle()}
+                                .assistantControlsEnabled=${this.currentView === 'assistant'}
+                                .assistantMessageDraft=${this.assistantMessageDraft}
+                                .assistantCanNavigatePrevious=${assistantControls?.canNavigatePrevious ?? false}
+                                .assistantCanNavigateNext=${assistantControls?.canNavigateNext ?? false}
+                                .assistantResponseCounter=${assistantControls?.responseCounter ?? ''}
+                                .assistantIsSaved=${assistantControls?.isSaved ?? false}
+                                .onAssistantNavigatePrevious=${this.currentView === 'assistant'
+                                    ? () => this.handleAssistantNavigatePrevious()
+                                    : null}
+                                .onAssistantNavigateNext=${this.currentView === 'assistant' ? () => this.handleAssistantNavigateNext() : null}
+                                .onAssistantSave=${this.currentView === 'assistant' ? () => this.handleAssistantSave() : null}
+                                .onAssistantInputChange=${this.currentView === 'assistant'
+                                    ? e => this.handleAssistantInputChange(e)
+                                    : null}
+                                .onAssistantInputKeydown=${this.currentView === 'assistant'
+                                    ? e => this.handleAssistantInputKeydown(e)
+                                    : null}
+                                ?isClickThrough=${this._isClickThrough}
+                            ></app-header>
+                        `;
+                    })()}
                     <div class="${mainContentClass}">
                         <div class="view-container">${this.renderCurrentView()}</div>
                     </div>
@@ -566,6 +673,7 @@ export class DesierAiApp extends LitElement {
 
         this.requestUpdate();
     }
+
 }
 
 customElements.define('desier-ai-app', DesierAiApp);

@@ -17,6 +17,9 @@ export class AssistantView extends LitElement {
             height: calc(100% - 60px);
             overflow-y: auto;
             border-radius: 10px;
+        .response-container.full-height {
+            height: 100%;
+        }
             font-size: var(--response-font-size, 18px);
             line-height: 1.6;
             background: var(--main-content-background);
@@ -47,6 +50,19 @@ export class AssistantView extends LitElement {
         .response-container [data-word].visible {
             opacity: 1;
             filter: blur(0px);
+        }
+
+        .response-container.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 32px;
+        }
+
+        .response-container.empty [data-word] {
+            opacity: 1;
+            filter: none;
         }
 
         /* Markdown styling */
@@ -200,16 +216,17 @@ export class AssistantView extends LitElement {
             flex: 1;
             background: var(--input-background);
             color: var(--text-color);
-            border: 1px solid var(--button-border);
+            border: 1px solid rgba(118, 75, 162, 0.45);
             padding: 10px 14px;
             border-radius: 8px;
             font-size: 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .text-input-container input:focus {
             outline: none;
-            border-color: var(--focus-border-color);
-            box-shadow: 0 0 0 3px var(--focus-box-shadow);
+            border-color: rgba(118, 75, 162, 0.9);
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.25);
             background: var(--input-focus-background);
         }
 
@@ -317,6 +334,7 @@ export class AssistantView extends LitElement {
         onSendText: { type: Function },
         shouldAnimateResponse: { type: Boolean },
         savedResponses: { type: Array },
+        showInputBar: { type: Boolean },
     };
 
     constructor() {
@@ -327,6 +345,7 @@ export class AssistantView extends LitElement {
         this.isAnalyzing = false;
         this.onSendText = () => {};
         this._lastAnimatedWordCount = 0;
+        this.showInputBar = true;
         // Load saved responses from localStorage
         try {
             this.savedResponses = JSON.parse(localStorage.getItem('savedResponses') || '[]');
@@ -350,7 +369,7 @@ export class AssistantView extends LitElement {
         const profileNames = this.getProfileNames();
         return this.responses.length > 0 && this.currentResponseIndex >= 0
             ? this.responses[this.currentResponseIndex]
-            : `Hey, Im listening to your ${profileNames[this.selectedProfile] || 'session'}?`;
+            : `Keep calm, I'm with you.`;
     }
 
     renderMarkdown(content) {
@@ -620,67 +639,78 @@ export class AssistantView extends LitElement {
         const responseCounter = this.getResponseCounter();
         const isSaved = this.isResponseSaved();
 
+        const containerClasses = ['response-container'];
+        if (!this.showInputBar) {
+            containerClasses.push('full-height');
+        }
+        if (this.responses.length === 0 && !this.isAnalyzing) {
+            containerClasses.push('empty');
+        }
+        const containerClass = containerClasses.join(' ');
+
         return html`
-            <div class="response-container" id="responseContainer"></div>
+            <div class="${containerClass}" id="responseContainer"></div>
 
-            <div class="text-input-container">
-                <button class="nav-button" @click=${this.navigateToPreviousResponse} ?disabled=${this.currentResponseIndex <= 0}>
-                    <?xml version="1.0" encoding="UTF-8"?><svg
-                        width="24px"
-                        height="24px"
-                        stroke-width="1.7"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        color="#ffffff"
-                    >
-                        <path d="M15 6L9 12L15 18" stroke="#ffffff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
-                    </svg>
-                </button>
+            ${this.showInputBar
+                ? html`
+                      <div class="text-input-container">
+                          <button class="nav-button" @click=${this.navigateToPreviousResponse} ?disabled=${this.currentResponseIndex <= 0}>
+                              <?xml version="1.0" encoding="UTF-8"?><svg
+                                  width="24px"
+                                  height="24px"
+                                  stroke-width="1.7"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  color="#ffffff"
+                              >
+                                  <path d="M15 6L9 12L15 18" stroke="#ffffff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
+                              </svg>
+                          </button>
 
-                ${this.responses.length > 0 ? html` <span class="response-counter">${responseCounter}</span> ` : ''}
+                          ${this.responses.length > 0 ? html` <span class="response-counter">${responseCounter}</span> ` : ''}
 
-                <button
-                    class="save-button ${isSaved ? 'saved' : ''}"
-                    @click=${this.saveCurrentResponse}
-                    title="${isSaved ? 'Response saved' : 'Save this response'}"
-                >
-                    <?xml version="1.0" encoding="UTF-8"?><svg
-                        width="24px"
-                        height="24px"
-                        stroke-width="1.7"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <path
-                            d="M5 20V5C5 3.89543 5.89543 3 7 3H16.1716C16.702 3 17.2107 3.21071 17.5858 3.58579L19.4142 5.41421C19.7893 5.78929 20 6.29799 20 6.82843V20C20 21.1046 19.1046 22 18 22H7C5.89543 22 5 21 5 20Z"
-                            stroke="currentColor"
-                            stroke-width="1.7"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        ></path>
-                        <path d="M15 22V13H9V22" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
-                        <path d="M9 3V8H15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
-                    </svg>
-                </button>
+                          <button
+                              class="save-button ${isSaved ? 'saved' : ''}"
+                              @click=${this.saveCurrentResponse}
+                              title="${isSaved ? 'Response saved' : 'Save this response'}"
+                          >
+                              <svg
+                                  width="24px"
+                                  height="24px"
+                                  stroke-width="1.7"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                              >
+                                  <path
+                                      d="M6 4H18C18.5523 4 19 4.44772 19 5V20L12 16L5 20V5C5 4.44772 5.44772 4 6 4Z"
+                                      stroke="currentColor"
+                                      stroke-width="1.7"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                  ></path>
+                              </svg>
+                          </button>
 
-                <input type="text" id="textInput" placeholder="Type a message to the AI..." @keydown=${this.handleTextKeydown} />
+                          <input type="text" id="textInput" placeholder="Type a message to the AI..." @keydown=${this.handleTextKeydown} />
 
-                <button class="nav-button" @click=${this.navigateToNextResponse} ?disabled=${this.currentResponseIndex >= this.responses.length - 1}>
-                    <?xml version="1.0" encoding="UTF-8"?><svg
-                        width="24px"
-                        height="24px"
-                        stroke-width="1.7"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        color="#ffffff"
-                    >
-                        <path d="M9 6L15 12L9 18" stroke="#ffffff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
-                    </svg>
-                </button>
-            </div>
+                          <button class="nav-button" @click=${this.navigateToNextResponse} ?disabled=${this.currentResponseIndex >= this.responses.length - 1}>
+                              <?xml version="1.0" encoding="UTF-8"?><svg
+                                  width="24px"
+                                  height="24px"
+                                  stroke-width="1.7"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  color="#ffffff"
+                              >
+                                  <path d="M9 6L15 12L9 18" stroke="#ffffff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
+                              </svg>
+                          </button>
+                      </div>
+                  `
+                : ''}
         `;
     }
 }

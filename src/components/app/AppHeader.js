@@ -16,13 +16,25 @@ export class AppHeader extends LitElement {
             border: 1px solid var(--border-color);
             background: var(--header-background);
             border-radius: var(--border-radius);
+            gap: var(--header-gap);
+        }
+
+        .header-main {
+            display: flex;
+            align-items: center;
+            gap: var(--header-gap);
+            flex: 1;
+            min-width: 0;
         }
 
         .header-title {
-            flex: 1;
+            flex: 0 0 auto;
             font-size: var(--header-font-size);
             font-weight: 600;
             -webkit-app-region: drag;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .header-actions {
@@ -30,6 +42,7 @@ export class AppHeader extends LitElement {
             gap: var(--header-gap);
             align-items: center;
             -webkit-app-region: no-drag;
+            flex-wrap: nowrap;
         }
 
         .header-actions span {
@@ -99,6 +112,78 @@ export class AppHeader extends LitElement {
             font-size: 12px;
             margin: 0px;
         }
+
+        .assistant-controls-wrapper {
+            flex: 1;
+            -webkit-app-region: no-drag;
+            display: flex;
+            align-items: center;
+            min-width: 0;
+        }
+
+        .assistant-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .assistant-controls.hidden {
+            display: none;
+        }
+
+        .assistant-nav-button,
+        .assistant-save-button {
+            background: transparent;
+            color: var(--icon-button-color);
+            border: none;
+            padding: 6px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, opacity 0.2s ease;
+        }
+
+        .assistant-nav-button:hover,
+        .assistant-save-button:hover {
+            background: var(--hover-background);
+        }
+
+        .assistant-nav-button:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        .assistant-save-button.saved {
+            color: #4caf50;
+        }
+
+        .assistant-input {
+            flex: 1;
+            min-width: 120px;
+            background: var(--input-background);
+            color: var(--text-color);
+            border: 1px solid var(--button-border);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            cursor: text;
+        }
+
+        .assistant-input:focus {
+            outline: none;
+            border-color: var(--focus-border-color);
+            box-shadow: 0 0 0 3px var(--focus-box-shadow);
+            background: var(--input-focus-background);
+        }
+
+        .assistant-response-counter {
+            font-size: 12px;
+            color: var(--description-color);
+            white-space: nowrap;
+        }
     `;
 
     static properties = {
@@ -116,6 +201,19 @@ export class AppHeader extends LitElement {
         advancedMode: { type: Boolean },
         onAdvancedClick: { type: Function },
         isPaused: { type: Boolean },
+        pauseStartTime: { type: Number },
+        totalPausedDuration: { type: Number },
+        assistantControlsEnabled: { type: Boolean },
+        assistantMessageDraft: { type: String },
+        assistantCanNavigatePrevious: { type: Boolean },
+        assistantCanNavigateNext: { type: Boolean },
+        assistantResponseCounter: { type: String },
+        assistantIsSaved: { type: Boolean },
+        onAssistantNavigatePrevious: { type: Function },
+        onAssistantNavigateNext: { type: Function },
+        onAssistantSave: { type: Function },
+        onAssistantInputChange: { type: Function },
+        onAssistantInputKeydown: { type: Function },
     };
 
     constructor() {
@@ -134,7 +232,20 @@ export class AppHeader extends LitElement {
         this.advancedMode = false;
         this.onAdvancedClick = () => {};
         this.isPaused = false;
+        this.pauseStartTime = null;
+        this.totalPausedDuration = 0;
         this._timerInterval = null;
+        this.assistantControlsEnabled = false;
+        this.assistantMessageDraft = '';
+        this.assistantCanNavigatePrevious = false;
+        this.assistantCanNavigateNext = false;
+        this.assistantResponseCounter = '';
+        this.assistantIsSaved = false;
+        this.onAssistantNavigatePrevious = null;
+        this.onAssistantNavigateNext = null;
+        this.onAssistantSave = null;
+        this.onAssistantInputChange = null;
+        this.onAssistantInputKeydown = null;
     }
 
     connectedCallback() {
@@ -204,8 +315,11 @@ export class AppHeader extends LitElement {
 
     getElapsedTime() {
         if (this.currentView === 'assistant' && this.startTime) {
-            const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
-            return `${elapsed}s`;
+            const pausedDuration = this.totalPausedDuration || 0;
+            const referenceTime = this.isPaused && this.pauseStartTime ? this.pauseStartTime : Date.now();
+            const elapsedMs = referenceTime - this.startTime - pausedDuration;
+            const elapsedSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+            return `${elapsedSeconds}s`;
         }
         return '';
     }
@@ -220,7 +334,86 @@ export class AppHeader extends LitElement {
 
         return html`
             <div class="header">
-                <div class="header-title">${this.getViewTitle()}</div>
+                <div class="header-main">
+                    <div class="header-title">${this.getViewTitle()}</div>
+                    <div class="assistant-controls-wrapper">
+                        <div class="assistant-controls ${this.assistantControlsEnabled ? '' : 'hidden'}">
+                            <button
+                                class="assistant-nav-button"
+                                @click=${this.assistantControlsEnabled ? this.onAssistantNavigatePrevious : null}
+                                ?disabled=${!this.assistantCanNavigatePrevious}
+                                title="Previous response"
+                            >
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    stroke-width="1.7"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    color="currentColor"
+                                >
+                                    <path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </button>
+
+                            ${this.assistantResponseCounter
+                                ? html`<span class="assistant-response-counter">${this.assistantResponseCounter}</span>`
+                                : ''}
+
+                            <button
+                                class="assistant-save-button ${this.assistantIsSaved ? 'saved' : ''}"
+                                @click=${this.assistantControlsEnabled ? this.onAssistantSave : null}
+                                title="${this.assistantIsSaved ? 'Response saved' : 'Save this response'}"
+                            >
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    stroke-width="1.7"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        d="M6 4H18C18.5523 4 19 4.44772 19 5V20L12 16L5 20V5C5 4.44772 5.44772 4 6 4Z"
+                                        stroke="currentColor"
+                                        stroke-width="1.7"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    ></path>
+                                </svg>
+                            </button>
+
+                            <input
+                                class="assistant-input"
+                                type="text"
+                                placeholder="Type a message to the AI..."
+                                .value=${this.assistantMessageDraft}
+                                @input=${this.assistantControlsEnabled ? this.onAssistantInputChange : null}
+                                @keydown=${this.assistantControlsEnabled ? this.onAssistantInputKeydown : null}
+                            />
+
+                            <button
+                                class="assistant-nav-button"
+                                @click=${this.assistantControlsEnabled ? this.onAssistantNavigateNext : null}
+                                ?disabled=${!this.assistantCanNavigateNext}
+                                title="Next response"
+                            >
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    stroke-width="1.7"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    color="currentColor"
+                                >
+                                    <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <div class="header-actions">
                     ${this.currentView === 'assistant'
                         ? html`

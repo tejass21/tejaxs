@@ -1,6 +1,8 @@
 // renderer.js
 const { ipcRenderer } = require('electron');
 
+const MAX_RESUME_TEXT_LENGTH = 15000;
+
 // Initialize random display name for UI components
 window.randomDisplayName = null;
 
@@ -151,10 +153,34 @@ function arrayBufferToBase64(buffer) {
     return btoa(binary);
 }
 
+function buildCustomPromptWithResume() {
+    const basePrompt = (localStorage.getItem('customPrompt') || '').trim();
+    const resumeRaw = localStorage.getItem('resumeText') || '';
+    const resumeFileName = localStorage.getItem('resumeFileName');
+
+    let resumeText = resumeRaw.trim();
+    if (resumeText.length > MAX_RESUME_TEXT_LENGTH) {
+        resumeText = resumeText.slice(0, MAX_RESUME_TEXT_LENGTH);
+    }
+
+    const segments = [];
+    if (basePrompt) {
+        segments.push(basePrompt);
+    }
+
+    if (resumeText) {
+        const heading = resumeFileName ? `Resume Context (${resumeFileName})` : 'Resume Context';
+        segments.push(`${heading}:\n${resumeText}`);
+    }
+
+    return segments.join('\n\n');
+}
+
 async function initializeGemini(profile = 'interview', language = 'en-US') {
     const apiKey = localStorage.getItem('apiKey')?.trim();
     if (apiKey) {
-        const success = await ipcRenderer.invoke('initialize-gemini', apiKey, localStorage.getItem('customPrompt') || '', profile, language);
+        const combinedPrompt = buildCustomPromptWithResume();
+        const success = await ipcRenderer.invoke('initialize-gemini', apiKey, combinedPrompt, profile, language);
         if (success) {
             cheddar.setStatus('Live');
         } else {
@@ -837,6 +863,8 @@ ipcRenderer.on('clear-sensitive-data', () => {
     console.log('Clearing renderer-side sensitive data...');
     localStorage.removeItem('apiKey');
     localStorage.removeItem('customPrompt');
+    localStorage.removeItem('resumeText');
+    localStorage.removeItem('resumeFileName');
     // Consider clearing IndexedDB as well for full erasure
 });
 
@@ -896,6 +924,9 @@ const cheddar = {
     // Platform detection
     isLinux: isLinux,
     isMacOS: isMacOS,
+
+    // Resume processing
+    processResumeFile: payload => ipcRenderer.invoke('process-resume-file', payload),
 };
 
 // Make it globally available
